@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 /**
- * Created by Adrian Kalata on 2017-11-15.
+ * Created  on 2017-11-15.
  */
 public class JTorrentClient {
 

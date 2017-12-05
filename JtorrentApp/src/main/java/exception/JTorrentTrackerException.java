@@ -1,7 +1,7 @@
 package exception;
 
 /**
- * Created by Adrian Kalata on 2017-11-15.
+ * Created  on 2017-11-15.
  */
 public class JTorrentTrackerException extends Exception {
 
