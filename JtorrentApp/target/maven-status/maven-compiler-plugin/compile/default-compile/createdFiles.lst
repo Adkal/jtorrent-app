@@ -1,0 +1,7 @@
+client\JTorrentClient.class
+exception\JTorrentTrackerException.class
+controller\Controller.class
+observer\JTorrentObserver.class
+tracker\JTorrentTracker.class
+exception\JTorrentClientException.class
+metadata\JTorrentMetadata.class

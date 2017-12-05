@@ -1,0 +1,93 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]>
+<html lang="en" ng-app="prop-ext-app" class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>
+<html lang="en" ng-app="prop-ext-app" class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>
+<html lang="en" ng-app="prop-ext-app" class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html lang="en" ng-app="prop-ext-app" class="no-js">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <title>JTorrentApp</title>
+    <script>
+
+  var startDownload = function(event){
+      var files = event.target.files;
+  		var file = files[0];
+       var theUrl = 'http://localhost:8080/JTorrent/controller/download';
+
+        var xhr = new XMLHttpRequest;
+        xhr.open('POST', theUrl);
+
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-File-Name', file.name);
+        xhr.setRequestHeader('Content-Type', file.type||'application/octet-stream');
+
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState === 4 && xhr.status === 200){
+                var response = xhr.responseText;
+            }
+        };
+
+        xhr.send(file);
+
+       <!--$.get( theUrl, function( data ) {-->
+             <!--window.alert("Rozpoczęto pobieranie pliku " + file.name);-->
+         <!--});-->
+  }
+
+</script>
+</head>
+
+<div ng-controller="propertiesCtrl">
+
+    <h4 align="center" >JTorrent</h4>
+        <label class = "btn btn-info btn-file" style = "margin-top: 2%">
+            Załaduj plik <input id = "file" type = "file" style = "visibility: hidden;"
+                                onchange = "startDownload(event)" accept = ".torrent">
+        </label>
+    </div>
+
+
+
+    <div id = "main" style = "margin-left: 5%; margin-right: 35%; ">
+        <div class="container">
+            <h2>Pobierane:</h2>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Nazwa</th>
+                    <th>Seed</th>
+                    <th>Peer</th>
+                    <th>Speed</th>
+                    <th>Estimated Time</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>dsd</td>
+                    <td>dsa</td>
+                    <td>dawda@example.com</td>
+                    <td>dawda@example.com</td>
+                    <td>dawda@example.com</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</html>
