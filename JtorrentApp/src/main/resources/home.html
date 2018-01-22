@@ -25,6 +25,46 @@
     <title>JTorrentApp</title>
     <script>
 
+    var myVar = setInterval(myTimer, 1000);
+
+    var id_id = 0;
+
+    var ids = new Array();
+
+    function myTimer() {
+            for(var i = 0; i < ids.length; i++){
+                $.get("http://localhost:8080/JTorrent/controller/completion?clientId=" + ids[i], function (data) {
+                    completion = data;
+                });
+                if (completion < 100.0) {
+                    document.getElementById(ids[i]).value = completion.toString();
+                    document.getElementById(ids[i]).innerHTML = completion.toString();
+                }
+        }
+    }
+
+    var generate = function(event){
+        var files = event.target.files;
+        var file = files[0];
+        var theUrl = 'http://localhost:8080/JTorrent/controller/generateTorrent';
+
+        var xhr = new XMLHttpRequest;
+        xhr.open('POST', theUrl);
+
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-File-Name', file.name);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState === 4 && xhr.status === 200){
+                var response = xhr.responseText;
+                window.alert(response);
+            }
+        };
+
+        xhr.send(file);
+    };
+
   var startDownload = function(event){
       var files = event.target.files;
   		var file = files[0];
@@ -35,20 +75,35 @@
 
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('X-File-Name', file.name);
-        xhr.setRequestHeader('Content-Type', file.type||'application/octet-stream');
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
 
         xhr.onreadystatechange = function(){
             if(xhr.readyState === 4 && xhr.status === 200){
                 var response = xhr.responseText;
+                window.alert("Rozpoczęto pobieranie " + file.name + "id procesu: " + response);
+                ids[id_id] = updateTable(response);
+                id_id = id_id + 1;
             }
         };
 
-        xhr.send(file);
+      xhr.send(file);
+  };
 
-       <!--$.get( theUrl, function( data ) {-->
-             <!--window.alert("Rozpoczęto pobieranie pliku " + file.name);-->
-         <!--});-->
-  }
+  var updateTable = function(response){
+
+      var data = JSON.parse(response);
+     $('#downloads tbody:last-child').append('<tr>' +
+                    '<th>' + data.name + '</th>' +
+                    '<th>' + data.peers + '</th>' +
+                    '<th>' + data.size + '</th>' +
+                    '<th id = data.id> 0 </th>' +
+                '<th><button type="button" class="btn btn-success">START</button>' +
+                '<button type="button" class="btn btn-danger">STOP</button></th></tr>');
+
+     return data.id;
+
+  };
+
 
 </script>
 </head>
@@ -56,38 +111,37 @@
 <div ng-controller="propertiesCtrl">
 
     <h4 align="center" >JTorrent</h4>
+    <div align="right">
         <label class = "btn btn-info btn-file" style = "margin-top: 2%">
             Załaduj plik <input id = "file" type = "file" style = "visibility: hidden;"
                                 onchange = "startDownload(event)" accept = ".torrent">
         </label>
+        <label class = "btn btn-info btn-file" style = "margin-top: 2%">
+            Wygeneruj torrent <input id = "torrentFile" type = "file" style = "visibility: hidden;"
+                                onchange = "generate(event)">
+        </label>
     </div>
+</div>
 
 
 
-    <div id = "main" style = "margin-left: 5%; margin-right: 35%; ">
-        <div class="container">
-            <h2>Pobierane:</h2>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Nazwa</th>
-                    <th>Seed</th>
-                    <th>Peer</th>
-                    <th>Speed</th>
-                    <th>Estimated Time</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>dsd</td>
-                    <td>dsa</td>
-                    <td>dawda@example.com</td>
-                    <td>dawda@example.com</td>
-                    <td>dawda@example.com</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
+<div id = "main" style = "margin-left: 5%; margin-right: 35%; ">
+    <div class="container">
+        <h2>Pobierane:</h2>
+        <table id = "downloads" class="table">
+            <thead>
+            <tr>
+                <th>Nazwa</th>
+                <th>Peer</th>
+                <th>Size</th>
+                <th>Completion</th>
+                <th>Options</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
     </div>
+</div>
 
 </html>
