@@ -35,7 +35,6 @@ public class Torrent {
         encodeBytes(str.getBytes("UTF-8"), out);
     }
     private static void encodeMap(Map<String,Object> map, OutputStream out) throws IOException{
-        // Sort the map. A generic encoder should sort by key bytes
         SortedMap<String,Object> sortedMap = new TreeMap<String, Object>(map);
         out.write('d');
         for (Map.Entry<String, Object> e : sortedMap.entrySet()) {
@@ -82,11 +81,5 @@ public class Torrent {
         OutputStream out = new FileOutputStream(file);
         encodeMap(metainfo, out);
         out.close();
-    }
-
-    //test case
-    public static void main(String[] args) throws Exception {
-        createTorrent(new File("E:\\x.torrent"),
-                new File("E:\\Projekt\\JtorrentApp\\target\\JTorrent.war"), "http://example.com/announce");
     }
 }

@@ -25,6 +25,53 @@
     <title>JTorrentApp</title>
     <script>
 
+    var myVar = setInterval(myTimer, 1000);
+
+    var id_id = 0;
+
+    var ids = new Array();
+
+    function myTimer() {
+        for(var i = 0; i < ids.length; i++){
+             updateCompletion(ids[i]);
+        }
+    }
+
+    var updateCompletion = function (id) {
+        $.get("http://localhost:8080/JTorrent/controller/completion?clientId=" + id, function (data) {
+            document.getElementById(data.id).value = data.Progress;
+            document.getElementById(data.id).innerHTML = data.Progress;
+
+            document.getElementById(data.id + 'down').value = data.Downloaded;
+            document.getElementById(data.id + 'down').innerHTML = data.Downloaded;
+
+            document.getElementById(data.id + 'up').value = data.Uploaded;
+            document.getElementById(data.id + 'up').innerHTML = data.Uploaded;
+        });
+    };
+
+    var generate = function(event){
+        var files = event.target.files;
+        var file = files[0];
+        var theUrl = 'http://localhost:8080/JTorrent/controller/generateTorrent';
+
+        var xhr = new XMLHttpRequest;
+        xhr.open('POST', theUrl);
+
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('X-File-Name', file.name);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+
+        xhr.onreadystatechange = function(){
+            if(xhr.readyState === 4 && xhr.status === 200){
+                var response = xhr.responseText;
+                window.alert(response);
+            }
+        };
+
+        xhr.send(file);
+    };
+
   var startDownload = function(event){
       var files = event.target.files;
   		var file = files[0];
@@ -35,31 +82,61 @@
 
         xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
         xhr.setRequestHeader('X-File-Name', file.name);
-        xhr.setRequestHeader('Content-Type', file.type||'application/octet-stream');
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
 
         xhr.onreadystatechange = function(){
             if(xhr.readyState === 4 && xhr.status === 200){
                 var response = xhr.responseText;
+                window.alert("Rozpoczęto pobieranie " + file.name + "id procesu: " + response);
+                ids[id_id] = updateTable(response);
+                id_id = id_id + 1;
             }
         };
 
-        xhr.send(file);
+      xhr.send(file);
+  };
 
-       <!--$.get( theUrl, function( data ) {-->
-             <!--window.alert("Rozpoczęto pobieranie pliku " + file.name);-->
-         <!--});-->
-  }
+  var updateTable = function(response){
+
+      var data = JSON.parse(response);
+     $('#downloads tbody:last-child').append('<tr>' +
+                    '<th>' + data.name + '</th>' +
+                    '<th>' + data.size + ' MB</th>' +
+                    '<th id = ' + data.id + '> 0.0 </th>' +
+                    '<th id = ' + data.id +'down>0.0</th>' +
+                    '<th id = ' + data.id +'up>0.0</th>' +
+                '<th><button type="button" class="btn btn-success"' +
+         'onclick = "start(' + data.id + ')">STOP</button></tr>');
+
+     return data.id;
+
+  };
+
+  var start = function (clientId) {
+      $.get("http://localhost:8080/JTorrent/controller/start?clientId=" + clientId, function (data) {
+            alert(data);
+            document.getElementById(clientId).nextSibling.firstChild.innerHTML = data;
+      });
+  };
+
 
 </script>
 </head>
+<body background="bg.jpg">
 
-<div ng-controller="propertiesCtrl">
+    <div ng-controller="propertiesCtrl">
 
-    <h4 align="center" >JTorrent</h4>
-        <label class = "btn btn-info btn-file" style = "margin-top: 2%">
-            Załaduj plik <input id = "file" type = "file" style = "visibility: hidden;"
-                                onchange = "startDownload(event)" accept = ".torrent">
-        </label>
+        <h1 align="center">JTorrent</h1>
+        <div align="center">
+            <label class = "btn btn-info btn-file" style = "margin-top: 2%">
+                Załaduj plik <input id = "file" type = "file" style = "visibility: hidden;"
+                                    onchange = "startDownload(event)" accept = ".torrent">
+            </label>
+            <label class = "btn btn-info btn-file" style = "margin-top: 2%">
+                Wygeneruj torrent <input id = "torrentFile" type = "file" style = "visibility: hidden;"
+                                    onchange = "generate(event)">
+            </label>
+        </div>
     </div>
 
 
@@ -67,27 +144,23 @@
     <div id = "main" style = "margin-left: 5%; margin-right: 35%; ">
         <div class="container">
             <h2>Pobierane:</h2>
-            <table class="table">
+            <table id = "downloads" class="table table-inverse">
                 <thead>
                 <tr>
                     <th>Nazwa</th>
-                    <th>Seed</th>
-                    <th>Peer</th>
-                    <th>Speed</th>
-                    <th>Estimated Time</th>
+                    <th>Rozmiar</th>
+                    <th>Postęp</th>
+                    <th>Pobrane(MB)</th>
+                    <th>Wysłane(MB)</th>
+                    <th>Opcje</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr>
-                    <td>dsd</td>
-                    <td>dsa</td>
-                    <td>dawda@example.com</td>
-                    <td>dawda@example.com</td>
-                    <td>dawda@example.com</td>
-                </tr>
                 </tbody>
             </table>
         </div>
     </div>
+
+</body>
 
 </html>

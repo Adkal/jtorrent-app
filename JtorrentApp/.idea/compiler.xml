@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="DES_Encrytper_webapp" />
+        <module name="JTorrent" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="DES_Encrytper_webapp" target="1.8" />
+      <module name="JTorrent" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

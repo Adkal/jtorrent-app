@@ -1,7 +1,11 @@
+serialization\SerializationUtils.class
 client\JTorrentClient.class
+model\StartDownloadResponse.class
 exception\JTorrentTrackerException.class
 controller\Controller.class
 observer\JTorrentObserver.class
+client\JTorrentClientHandlersMap.class
+generator\Torrent.class
 tracker\JTorrentTracker.class
 exception\JTorrentClientException.class
 metadata\JTorrentMetadata.class

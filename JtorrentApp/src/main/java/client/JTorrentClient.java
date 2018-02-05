@@ -50,7 +50,7 @@ public class JTorrentClient {
         client.setMaxUploadRate(maxUploadRate);
         client.download();
         LOGGER.info("Download started, waiting for finish....");
-        //client.waitForCompletion();
+        new Thread(client::waitForCompletion);
         return client;
     }
 

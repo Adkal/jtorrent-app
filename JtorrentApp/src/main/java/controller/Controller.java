@@ -2,7 +2,9 @@ package controller;
 
 import client.JTorrentClient;
 import client.JTorrentClientHandlersMap;
+import com.google.gson.Gson;
 import com.turn.ttorrent.client.Client;
+import com.turn.ttorrent.client.SharedTorrent;
 import exception.JTorrentClientException;
 import generator.Torrent;
 import model.StartDownloadResponse;
@@ -17,6 +19,8 @@ import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 @Path("/controller")
 public class Controller {
@@ -35,8 +39,8 @@ public class Controller {
 
         String fileName = headers.getHeaderString("X-File-Name");
 
-            File cacheFolder = new File(System.getProperty("user.home") + "\\JTorrent\\cache");
-        File targetFolder = new File(System.getProperty("user.home") + "\\JTorrent]\\targetFolder");
+        File cacheFolder = new File(System.getProperty("user.home") + "\\JTorrent\\cache");
+        File targetFolder = new File(System.getProperty("user.home") + "\\JTorrent\\targetFolder");
         cacheFolder.mkdirs();
         targetFolder.mkdirs();
 
@@ -47,7 +51,7 @@ public class Controller {
         try{
 
             Client client = JTorrentClient.createDownloadClient(fullPath, targetFolder.getPath());
-          //  client = JTorrentClient.startDownloadWithDefault(client);
+            client = JTorrentClient.startDownloadWithDefault(client);
           //  JTorrentClient.addObserver(client);
 
             //client.waitForCompletion();
@@ -67,20 +71,19 @@ public class Controller {
     @Path("/start")
     @Produces({MediaType.TEXT_HTML})
     public String startDownload(@QueryParam("clientId") String clientId){
+        String message;
         try {
-            getClientById(clientId).download();
-            return "downloading successfully started";
+            Client client = getClientById(clientId);
+            if(client.getState() == Client.ClientState.SHARING) {
+                client.download();
+                message = "STOP";
+            }else{
+                message = "START";
+            }
+            return message;
         }catch (NumberFormatException e){
-            return "start failed";
+            return "Failed";
         }
-
-    }
-
-    @GET
-    @Path("/completion")
-    @Produces({MediaType.TEXT_PLAIN})
-    public float getCompletion(@QueryParam("clientId") String clientId){
-        return getClientById(clientId).getTorrent().getCompletion();
 
     }
 
@@ -98,10 +101,34 @@ public class Controller {
     }
 
     @GET
+    @Path("/completion")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String getCompletion(@QueryParam("clientId") String clientId){
+        SharedTorrent torrent = getClientById(clientId).getTorrent();
+        float progress = torrent.getCompletion();
+        long downloaded = torrent.getDownloaded()/1024;
+        long uploaded = torrent.getUploaded()/1024;
+        Map<String, String> responseMap = new HashMap<>();
+        responseMap.put("id", clientId);
+        responseMap.put("Progress", String.format("%.2f", progress) + "%");
+        responseMap.put("Downloaded", String.valueOf(downloaded) + " MB");
+        responseMap.put("Uploaded", String.valueOf(uploaded) + " MB");
+        return new Gson().toJson(responseMap);
+
+    }
+
+    @GET
     @Path("/home")
     @Produces({MediaType.TEXT_HTML})
     public InputStream getHomePage() throws Exception {
         return getClass().getResourceAsStream("/home.html");
+    }
+
+    @GET
+    @Path("/bg.jpg")
+    @Produces({MediaType.TEXT_HTML})
+    public InputStream getBG() throws Exception {
+        return getClass().getResourceAsStream("/bg.jpg");
     }
 
     @POST
@@ -112,18 +139,18 @@ public class Controller {
         try {
             String fileName = headers.getHeaderString("X-File-Name");
 
-            File cacheFolder = new File(System.getProperty("user.home") + "\\JTorrent\\cache");
+            File generatePath = new File(System.getProperty("user.home") + "\\JTorrent\\toGenerate");
 
-            File targetFolder = new File(System.getProperty("user.home") + "\\JTorrent]\\targetFolder");
-            cacheFolder.mkdirs();
+            File targetFolder = new File(System.getProperty("user.home") + "\\JTorrent\\targetFolder\\generatedTorrent");
+            generatePath.mkdirs();
             targetFolder.mkdirs();
 
-            String fullPath = cacheFolder + "\\" + fileName;
+            String fullPath = generatePath + "\\" + fileName;
 
             FileUtils.copyInputStreamToFile(uploadedInputStream, new File(fullPath));
 
-            Torrent.createTorrent(new File(targetFolder + "\\generatedTorrent\\" +
-            fileName), new File(fullPath), "http://project.uksw.pl");
+            Torrent.createTorrent(new File(targetFolder + "\\" +
+            fileName + ".torrent"), new File(fullPath), "http://project.uksw.pl");
 
             return "Successfully generated torrent " + fileName;
         } catch (IOException e) {
@@ -140,8 +167,8 @@ public class Controller {
         return SerializationUtils.serializeToJson(
                 new StartDownloadResponse(
                         jTorrentClientHandlersMap.registerNewClient(client),
-                        client.getTorrent().getName(), 0, client.getPeers().size(),
-                        0, client.getTorrent().getSize()
+                        client.getTorrent().getName(), client.getTorrent().getDownloaded(), client.getPeers().size(),
+                        client.getTorrent().getUploaded(), client.getTorrent().getSize()/1048576
                 )
         );
     }

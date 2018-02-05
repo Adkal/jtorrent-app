@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="JTorrent:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="JTorrent.war">
+      <element id="artifact" artifact-name="JTorrent:war exploded" />
+    </root>
+  </artifact>
+</component>
